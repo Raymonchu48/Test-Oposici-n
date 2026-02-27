@@ -7,16 +7,18 @@
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#4361ee",
+ {
+  "name": "OpoStudy - Tests Auxiliar Informático",
+  "short_name": "OpoStudy",
+  "description": "App de estudio mediante tests para oposiciones de Técnico Auxiliar Informático",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#4361ee",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
