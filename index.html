@@ -304,11 +304,10 @@
         function selectBlock(blockNum) {
             state.selectedBlock = blockNum;
             document.querySelectorAll('.block-card').forEach(card => {
-                card.classList.remove('selected');
-                if (card.dataset.block == blockNum) card.classList.add('selected');
-            });
-            document.getElementById('startTest').disabled = false;
-        }
+           card.classList.toggle('selected', parseInt(card.dataset.block, 10) === blockNum);
+  });
+  document.getElementById('startTest').disabled = false;
+}    
 
         function selectMode(mode) {
             state.testMode = mode;
@@ -323,28 +322,36 @@
                 state.questionsCount = 15;
             }
             document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.mode === mode) btn.classList.add('active');
-            });
-            document.getElementById('questionsCountDisplay').textContent = state.questionsCount;
-        }
+              btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
 
-        function generateTest() {
-            let blockQuestions;
-            if (state.testMode === 'full') {
-                blockQuestions = [...questionsDB[1], ...questionsDB[2], ...questionsDB[3], ...questionsDB[4]];
-            } else {
-                blockQuestions = questionsDB[state.selectedBlock];
-            }
-            const shuffled = blockQuestions.sort(() => Math.random() - 0.5);
-            state.currentQuestions = shuffled.slice(0, state.questionsCount);
-            state.currentIndex = 0;
-            state.answers = [];
-            state.timeElapsed = 0;
-            showQuestion();
-            startTimer();
-            showScreen('test');
-        }
+  document.getElementById('questionsCountDisplay').textContent = state.questionsCount;
+
+  // ✅ clave: habilitar/deshabilitar start según modo
+  document.getElementById('startTest').disabled = (mode !== 'full' && !state.selectedBlock);
+} 
+
+    function generateTest() {
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('timer').textContent = '00:00';
+
+  let blockQuestions;
+  if (state.testMode === 'full') {
+    blockQuestions = [...questionsDB[1], ...questionsDB[2], ...questionsDB[3], ...questionsDB[4]];
+  } else {
+    blockQuestions = questionsDB[state.selectedBlock];
+  }
+
+  const shuffled = [...blockQuestions].sort(() => Math.random() - 0.5);
+  state.currentQuestions = shuffled.slice(0, state.questionsCount);
+  state.currentIndex = 0;
+  state.answers = [];
+  state.timeElapsed = 0;
+
+  showQuestion();
+  startTimer();
+  showScreen('test');
+}   
 
         function showQuestion() {
             const question = state.currentQuestions[state.currentIndex];
