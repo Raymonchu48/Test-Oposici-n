@@ -1,505 +1,832 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpoStudy - Tests Auxiliar Informático</title>
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#4361ee">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4361ee;
-            --primary-dark: #3a56d4;
-            --secondary: #f72585;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --dark: #1a1a2e;
-            --dark-card: #16213e;
-            --light: #edf2f4;
-            --gray: #8d99ae;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--light); min-height: 100vh; overflow-x: hidden; }
-        .app-container { max-width: 600px; margin: 0 auto; min-height: 100vh; padding-bottom: 80px; }
-        .header { background: linear-gradient(135deg, var(--primary) 0%, #7209b7 100%); padding: 20px; padding-top: max(20px, env(safe-area-inset-top)); position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(67, 97, 238, 0.3); }
-        .header h1 { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .progress-bar { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 15px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--success); transition: width 0.3s ease; }
-        .screen { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
-        .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
-        .stat-card { background: var(--dark-card); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-card .number { font-size: 2rem; font-weight: 700; color: var(--primary); }
-        .stat-card .label { font-size: 0.85rem; color: var(--gray); margin-top: 5px; }
-        .blocks-section h2 { font-size: 1.2rem; margin-bottom: 15px; color: var(--light); }
-        .block-card { background: var(--dark-card); border-radius: 16px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s ease; border: 1px solid transparent; }
-        .block-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(67, 97, 238, 0.2); }
-        .block-card.selected { border-color: var(--primary); background: linear-gradient(135deg, var(--dark-card) 0%, rgba(67, 97, 238, 0.1) 100%); }
-        .block-card h3 { font-size: 1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-        .block-card .badge { font-size: 0.75rem; background: var(--primary); padding: 4px 10px; border-radius: 20px; margin-left: auto; }
-        .block-card p { font-size: 0.85rem; color: var(--gray); }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; border: none; transition: all 0.3s ease; width: 100%; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, #7209b7 100%); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-secondary { background: var(--dark-card); color: var(--light); border: 1px solid rgba(255,255,255,0.1); }
-        .question-counter { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .question-counter .current { font-size: 0.9rem; color: var(--gray); }
-        .question-counter .timer { background: var(--dark-card); padding: 8px 16px; border-radius: 20px; font-weight: 600; color: var(--success); }
-        .question-card { background: var(--dark-card); border-radius: 20px; padding: 25px; margin-bottom: 25px; }
-        .question-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px; }
-        .options-list { display: flex; flex-direction: column; gap: 12px; }
-        .option { background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 20px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; }
-        .option:hover { border-color: var(--primary); background: rgba(67, 97, 238, 0.1); }
-        .option.selected { border-color: var(--primary); background: rgba(67, 97, 238, 0.2); }
-        .option.correct { border-color: #4cc9f0; background: rgba(76, 201, 240, 0.2); }
-        .option.incorrect { border-color: var(--danger); background: rgba(247, 37, 133, 0.2); }
-        .option .letter { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
-        .option.selected .letter { background: var(--primary); }
-        .option.correct .letter { background: #4cc9f0; }
-        .option.incorrect .letter { background: var(--danger); }
-        .result-card { text-align: center; padding: 40px 20px; }
-        .result-score { font-size: 4rem; font-weight: 700; background: linear-gradient(135deg, var(--success) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .result-label { font-size: 1.2rem; color: var(--gray); margin-bottom: 30px; }
-        .result-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
-        .result-detail { background: var(--dark-card); border-radius: 12px; padding: 15px; text-align: center; }
-        .result-detail .value { font-size: 1.5rem; font-weight: 700; }
-        .result-detail .value.correct { color: #4cc9f0; }
-        .result-detail .value.incorrect { color: var(--danger); }
-        .result-detail .label { font-size: 0.8rem; color: var(--gray); }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark-card); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; padding: 10px 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gray); text-decoration: none; font-size: 0.75rem; cursor: pointer; padding: 8px 16px; border-radius: 12px; transition: all 0.2s ease; }
-        .nav-item.active { color: var(--primary); background: rgba(67, 97, 238, 0.1); }
-        .nav-item span:first-child { font-size: 1.3rem; }
-        .settings-section { margin-bottom: 25px; }
-        .settings-section h3 { font-size: 1rem; margin-bottom: 15px; color: var(--gray); }
-        .setting-item { background: var(--dark-card); border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .setting-item label { font-size: 0.95rem; }
-        .toggle { width: 50px; height: 28px; background: rgba(255,255,255,0.1); border-radius: 14px; position: relative; cursor: pointer; transition: all 0.3s ease; }
-        .toggle.active { background: var(--primary); }
-        .toggle::after { content: ''; position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: all 0.3s ease; }
-        .toggle.active::after { left: 25px; }
-        .mode-select { display: flex; gap: 10px; margin-bottom: 20px; }
-        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; background: var(--dark-card); border: 2px solid transparent; color: var(--gray); cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
-        .mode-btn.active { border-color: var(--primary); color: var(--primary); }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulador TAI - 100 preguntas + 2 casos (FULL)</title>
+  <style>
+    :root { font-family: Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { margin: 0; background: #f6f7fb; color: #111; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 18px; }
+    header { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .card { background: #fff; border: 1px solid #e6e8ef; border-radius: 14px; padding: 16px; box-shadow: 0 1px 0 rgba(0,0,0,.03); }
+    .row { display: grid; grid-template-columns: 1.35fr .65fr; gap: 12px; align-items: start; }
+    @media (max-width: 980px){ .row { grid-template-columns: 1fr; } }
+    .meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .pill { padding: 6px 10px; border-radius: 999px; border: 1px solid #e6e8ef; background: #fafbff; font-size: 14px; }
+    .timer { font-variant-numeric: tabular-nums; font-weight: 700; }
+    .qtitle { font-weight: 700; font-size: 18px; margin: 0 0 10px; }
+    .qtext { margin: 0 0 12px; line-height: 1.35; }
+    .opts { display: grid; gap: 10px; }
+    label.opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid #e6e8ef; border-radius: 12px; cursor: pointer; background: #fff; }
+    label.opt:hover { background: #fbfcff; }
+    input[type="radio"] { margin-top: 2px; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; }
+    button { border: 1px solid #d7dbe7; background: #fff; padding: 10px 12px; border-radius: 12px; cursor: pointer; }
+    button:hover { background: #f3f5fb; }
+    button.primary { background: #111; color: #fff; border-color: #111; }
+    button.primary:hover { background: #222; }
+    button.danger { border-color: #ffccd0; background: #fff5f6; }
+    button.danger:hover { background: #ffe9eb; }
+    .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
+    @media (max-width: 980px){ .grid { grid-template-columns: repeat(8,1fr); } }
+    @media (max-width: 520px){ .grid { grid-template-columns: repeat(5,1fr); } }
+    .qbtn { padding: 8px 0; border-radius: 10px; text-align: center; user-select: none; }
+    .qbtn.current { outline: 2px solid #111; }
+    .qbtn.answered { background: #ecf4ff; border-color: #bcd6ff; }
+    .qbtn.flagged { background: #fff7e6; border-color: #ffd58a; }
+    .muted { color: #5b6270; font-size: 14px; }
+    .result h2 { margin: 0 0 6px; }
+    .result p { margin: 6px 0; }
+    .bad { color: #b00020; font-weight: 700; }
+    .good { color: #0a7a2f; font-weight: 700; }
+    .review { margin-top: 10px; display: grid; gap: 10px; }
+    .review .item { border: 1px solid #e6e8ef; border-radius: 12px; padding: 12px; background: #fff; }
+    .k { font-weight: 700; }
+    .hr { height: 1px; background: #e6e8ef; margin: 12px 0; }
+    .topline { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+    .small { font-size: 12px; }
+    .cases { display:grid; gap:12px; }
+    .caseTitle { font-weight: 800; margin:0 0 6px; }
+    .caseBody { margin:0; line-height:1.35; }
+    .badge { display:inline-block; padding: 2px 8px; border-radius: 999px; border: 1px solid #e6e8ef; background:#fafbff; font-size: 12px; color:#333; }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <h1>📚 OpoStudy</h1>
-            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
-        </header>
+  <div class="wrap">
+    <header>
+      <div class="meta">
+        <div class="pill"><span class="k">Simulador:</span> TAI (Test)</div>
+        <div class="pill"><span class="k">Set:</span> <span id="setId">—</span></div>
+        <div class="pill"><span class="k">Preguntas:</span> <span id="totalQ">0</span></div>
+        <div class="pill"><span class="k">Respondidas:</span> <span id="answeredCount">0</span></div>
+        <div class="pill timer" title="Tiempo transcurrido">⏱ <span id="timer">00:00</span></div>
+      </div>
+      <div class="nav">
+        <button id="resetBtn" class="danger" title="Genera nuevo intento con 100 preguntas y 2 casos distintos">Reiniciar (nuevo intento)</button>
+        <button id="finishBtn" class="primary" title="Corrige y muestra resultado">Finalizar</button>
+      </div>
+    </header>
 
-        <div class="screen active" id="homeScreen">
-            <div class="stats-grid">
-                <div class="stat-card"><div class="number" id="totalAnswered">0</div><div class="label">Preguntas respondidas</div></div>
-                <div class="stat-card"><div class="number" id="totalCorrect">0</div><div class="label">Respuestas correctas</div></div>
-                <div class="stat-card"><div class="number" id="averageScore">0%</div><div class="label">Tasa de acierto</div></div>
-                <div class="stat-card"><div class="number" id="streakDays">0</div><div class="label">Racha de días</div></div>
-            </div>
-
-            <div class="blocks-section">
-                <h2>Selecciona un modo de test</h2>
-                <div class="mode-select">
-                    <button class="mode-btn" data-mode="full">🎯 Examen Completo (30)</button>
-                    <button class="mode-btn active" data-mode="exam">📝 Examen (15)</button>
-                    <button class="mode-btn" data-mode="practice">📖 Práctica</button>
-                </div>
-
-                <h2>Selecciona un bloque temático</h2>
-                <div class="block-card" data-block="1"><h3>🏛️ Bloque 1 <span class="badge">15 temas</span></h3><p>Organización del Estado y Administración electrónica</p></div>
-                <div class="block-card" data-block="2"><h3>💻 Bloque 2 <span class="badge">15 temas</span></h3><p>Tecnología básica</p></div>
-                <div class="block-card" data-block="3"><h3>⚙️ Bloque 3 <span class="badge">15 temas</span></h3><p>Desarrollo de sistemas</p></div>
-                <div class="block-card" data-block="4"><h3>🌐 Bloque 4 <span class="badge">15 temas</span></h3><p>Sistemas y comunicaciones</p></div>
-
-                <button class="btn btn-primary" id="startTest" disabled>Iniciar Test</button>
-            </div>
+    <section class="card" style="margin-top:12px;" id="casesCard">
+      <div class="topline">
+        <div>
+          <div class="k">Casos prácticos (cambian en cada reinicio)</div>
+          <div class="muted small">Algunas preguntas pueden apoyarse en estos escenarios como contexto.</div>
         </div>
+        <span class="badge">2 casos por intento</span>
+      </div>
+      <div class="hr"></div>
+      <div class="cases" id="casesWrap"></div>
+    </section>
 
-        <div class="screen" id="testScreen">
-            <div class="question-counter">
-                <span class="current" id="questionCounter">Pregunta 1 de 15</span>
-                <span class="timer" id="timer">00:00</span>
-            </div>
-            <div class="question-card">
-                <p class="question-text" id="questionText">Cargando pregunta...</p>
-                <div class="options-list" id="optionsList"></div>
-            </div>
-            <button class="btn btn-primary" id="nextQuestion" disabled>Siguiente pregunta →</button>
+    <div class="row" style="margin-top: 12px;">
+      <section class="card" id="testCard">
+        <div class="topline">
+          <div class="muted small">Marca “Dudosa” para revisarla. El reinicio genera preguntas y casos nuevos.</div>
+          <button id="flagBtn" title="Marcar esta pregunta como dudosa">Dudosa</button>
         </div>
+        <div class="hr"></div>
 
-        <div class="screen" id="resultsScreen">
-            <div class="result-card">
-                <div class="result-score" id="resultScore">0%</div>
-                <div class="result-label" id="resultLabel">¡Examen completado!</div>
-                <div class="result-details">
-                    <div class="result-detail"><div class="value correct" id="correctCount">0</div><div class="label">Correctas</div></div>
-                    <div class="result-detail"><div class="value incorrect" id="incorrectCount">0</div><div class="label">Incorrectas</div></div>
-                    <div class="result-detail"><div class="value" id="timeSpent">0:00</div><div class="label">Tiempo</div></div>
-                </div>
-                <div class="mode-select">
-                    <button class="btn btn-secondary" id="retryBtn">🔄 Repetir</button>
-                    <button class="btn btn-primary" id="homeBtn">🏠 Menú principal</button>
-                </div>
-            </div>
+        <h1 class="qtitle" id="qTitle"></h1>
+        <p class="qtext" id="qText"></p>
+        <div class="opts" id="opts"></div>
+
+        <div class="hr"></div>
+        <div class="nav">
+          <button id="prevBtn">← Anterior</button>
+          <button id="nextBtn">Siguiente →</button>
         </div>
+      </section>
 
-        <div class="screen" id="statsScreen">
-            <h2 style="margin-bottom: 20px;">📊 Estadísticas</h2>
-            <div class="settings-section"><div class="setting-item"><label>Por bloque temático</label></div></div>
-            <div class="stats-grid" style="grid-template-columns: 1fr;">
-                <div class="stat-card"><div class="number" id="block1Stats">0%</div><div class="label">Bloque 1 - Organización del Estado</div></div>
-                <div class="stat-card"><div class="number" id="block2Stats">0%</div><div class="label">Bloque 2 - Tecnología básica</div></div>
-                <div class="stat-card"><div class="number" id="block3Stats">0%</div><div class="label">Bloque 3 - Desarrollo de sistemas</div></div>
-                <div class="stat-card"><div class="number" id="block4Stats">0%</div><div class="label">Bloque 4 - Sistemas y comunicaciones</div></div>
-            </div>
+      <aside class="card">
+        <div class="topline">
+          <div class="k">Mapa de preguntas</div>
+          <div class="muted small">Azul: respondida · Amarillo: dudosa</div>
         </div>
-
-        <div class="screen" id="settingsScreen">
-            <h2 style="margin-bottom: 20px;">⚙️ Configuración</h2>
-            <div class="settings-section">
-                <h3>Test</h3>
-                <div class="setting-item"><label>Preguntas por test</label><span id="questionsCountDisplay">15</span></div>
-                <div class="setting-item"><label>Temporizador</label><div class="toggle active" id="timerToggle"></div></div>
-            </div>
-            <div class="settings-section">
-                <h3>Sonido</h3>
-                <div class="setting-item"><label>Efectos de sonido</label><div class="toggle active" id="soundToggle"></div></div>
-            </div>
-        </div>
-
-        <nav class="bottom-nav">
-            <div class="nav-item active" data-screen="home"><span>🏠</span><span>Inicio</span></div>
-            <div class="nav-item" data-screen="stats"><span>📊</span><span>Stats</span></div>
-            <div class="nav-item" data-screen="settings"><span>⚙️</span><span>Ajustes</span></div>
-        </nav>
+        <div class="hr"></div>
+        <div class="grid" id="grid"></div>
+        <div class="hr"></div>
+        <div class="muted small" id="hint"></div>
+      </aside>
     </div>
 
-    <script>
-        const questionsDB = {
-            1: [
-                {question: "¿Cuál es el artículo de la Constitución Española que establece el derecho a la educación?", options: ["Artículo 14", "Artículo 27", "Artículo 35", "Artículo 38"], correct: 1},
-                {question: "¿Qué funciones tiene la Corona según la Constitución Española de 1978?", options: ["Legislar, ejecutar y juzgar", "Sancionar y promulgar leyes, proclamar referendos, arbitrar y moderar", "Nombrar al Presidente del Gobierno", "Convocar elecciones"], correct: 1},
-                {question: "¿Cuántos miembros tiene el Congreso de los Diputados?", options: ["250", "300", "350", "400"], correct: 2},
-                {question: "¿Qué es el Defensor del Pueblo?", options: ["Un juez", "Un órgano constitucional independiente", "Un miembro del Gobierno", "Un periodista"], correct: 1},
-                {question: "¿Qué normativa regula la protección de datos personales en España?", options: ["Ley 34/2002", "RGPD y Ley Orgánica 3/2018", "Ley 40/2015", "Ley 39/2015"], correct: 1},
-                {question: "¿Qué es el Esquema Nacional de Interoperabilidad?", options: ["Un protocolo de internet", "Normas para el intercambio de información entre Administraciones", "Un sistema operativo", "Un lenguaje de programación"], correct: 1},
-                {question: "¿Qué establece la Ley 19/2013 de transparencia?", options: ["Derecho de acceso a información pública", "Protección de datos", "Administración electrónica", "Contratación pública"], correct: 0},
-                {question: "¿Qué es una sede electrónica?", options: ["Un edificio físico", "Un punto de acceso electrónico a la Administración", "Un servidor web", "Una aplicación móvil"], correct: 1},
-                {question: "¿Qué principios rigen la Administración Pública según la Constitución?", options: ["Jerarquía, imparcialidad y eficiencia", "Transparencia y participación", "Eficacia y servicio al ciudadano", "Todas las anteriores"], correct: 3},
-                {question: "¿Qué es el DNI electrónico?", options: ["Un documento de identificación física", "Un documento con certificado digital incorporado", "Una aplicación móvil", "Una tarjeta de crédito"], correct: 1},
-                {question: "¿Cuántos artículos tiene la Constitución Española de 1978?", options: ["165", "169", "175", "180"], correct: 1},
-                {question: "¿Qué es el Tribunal Constitucional?", options: ["Un órgano legislativo", "Órgano constitucional independiente", "Parte del Poder Judicial", "Un organismo administrativo"], correct: 1},
-                {question: "¿Qué son las Cortes Generales?", options: ["El Gobierno", "El Parlamento bicameral", "El Tribunal Supremo", "La Corona"], correct: 1},
-                {question: "¿Qué tipo de Estado establece la Constitución de 1978?", options: ["Estado unitario", "Estado federal", "Estado social y democrático de derecho", "Estado confederal"], correct: 2},
-                {question: "¿Qué es el Consejo de Transparencia y Buen Gobierno?", options: ["Un tribunal", "Un órgano independiente", "Una agencia", "Un organismo consultivo"], correct: 1}
-            ],
-            2: [
-                {question: "¿Qué componente es considerado el 'cerebro' del ordenador?", options: ["RAM", "CPU", "Disco duro", "Fuente de alimentación"], correct: 1},
-                {question: "¿Qué sistema operativo es de código abierto?", options: ["Windows", "macOS", "Linux", "iOS"], correct: 2},
-                {question: "¿Qué tipo de base de datos utiliza SQL?", options: ["NoSQL", "Relacional", "Jerárquica", "De red"], correct: 1},
-                {question: "¿Qué dispositivo se utiliza para conectar una red local a internet?", options: ["Switch", "Router", "Hub", "Bridge"], correct: 1},
-                {question: "¿Qué significa RAM?", options: ["Read Access Memory", "Random Access Memory", "Ready Available Memory", "Rapid Access Module"], correct: 1},
-                {question: "¿Qué es un periférico?", options: ["Un componente interno", "Un dispositivo externo", "Un programa", "Una red"], correct: 1},
-                {question: "¿Qué sistema de archivos usa Windows principalmente?", options: ["ext4", "NTFS", "APFS", "FAT32"], correct: 1},
-                {question: "¿Qué es un algoritmo?", options: ["Un programa", "Un conjunto de pasos ordenados para resolver un problema", "Un lenguaje de programación", "Un tipo de datos"], correct: 1},
-                {question: "¿Qué tipo de almacenamiento es el SSD?", options: ["Mecánico", "Óptico", "De estado sólido", "Magnético"], correct: 2},
-                {question: "¿Qué significa GUI?", options: ["Graphical User Interface", "General User Interface", "Global User Integration", "Graphic Unified Input"], correct: 0},
-                {question: "¿Qué es la memoria ROM?", options: ["Memoria de solo lectura", "Memoria de lectura y escritura", "Memoria volátil", "Memoria caché"], correct: 0},
-                {question: "¿Qué significa CPU?", options: ["Central Processing Unit", "Computer Personal Unit", "Central Program Utility", "Core Processing Unit"], correct: 0},
-                {question: "¿Qué es un puerto USB?", options: ["Un protocolo", "Una interfaz de conexión", "Un programa", "Un tipo de archivo"], correct: 1},
-                {question: "¿Qué significa IP en redes?", options: ["Internet Protocol", "Internal Protocol", "Information Protocol", "Interconnection Protocol"], correct: 0},
-                {question: "¿Qué es un sistema operativo?", options: ["Un hardware", "Software que gestiona el sistema", "Una red", "Un protocolo"], correct: 1}
-            ],
-            3: [
-                {question: "¿Qué es una entidad en un modelo de datos?", options: ["Un atributo", "Un objeto del mundo real con existencia propia", "Una relación", "Una tabla"], correct: 1},
-                {question: "¿Qué es la normalización de bases de datos?", options: ["Un tipo de backup", "Proceso de organizar datos para evitar redundancia", "Un lenguaje de programación", "Un protocolo de red"], correct: 1},
-                {question: "¿Qué significa SQL?", options: ["Structured Question Language", "Structured Query Language", "Simple Query Logic", "Standard Query Link"], correct: 1},
-                {question: "¿Qué es UML?", options: ["Un lenguaje de programación", "Lenguaje de modelado unificado", "Un sistema de archivos", "Un protocolo"], correct: 1},
-                {question: "¿Qué es la herencia en programación orientada a objetos?", options: ["Un tipo de variable", "Mecanismo por el cual una clase hereda propiedades de otra", "Un bucle", "Una función"], correct: 1},
-                {question: "¿Qué es HTML?", options: ["Un lenguaje de programación", "Lenguaje de marcado de hipertexto", "Un sistema de bases de datos", "Un protocolo"], correct: 1},
-                {question: "¿Qué es un disparador (trigger)?", options: ["Un tipo de dato", "Un procedimiento que se ejecuta automáticamente", "Un usuario", "Un servidor"], correct: 1},
-                {question: "¿Qué es Java EE?", options: ["Un hardware", "Una plataforma de desarrollo empresarial", "Un sistema operativo", "Una red"], correct: 1},
-                {question: "¿Qué significa API?", options: ["Application Programming Interface", "Automatic Program Integration", "Advanced Programming Item", "Application Process Integration"], correct: 0},
-                {question: "¿Qué es un patrón de diseño?", options: ["Un error de programación", "Una solución reutilizable a problemas comunes", "Un tipo de dato", "Un lenguaje"], correct: 1},
-                {question: "¿Qué es XML?", options: ["Un lenguaje de programación", "Lenguaje de marcado extensible", "Una base de datos", "Un protocolo"], correct: 1},
-                {question: "¿Qué es un procedimiento almacenado?", options: ["Una función del sistema", "Código SQL guardado en la base de datos", "Un trigger", "Una tabla virtual"], correct: 1},
-                {question: "¿Qué significa POO?", options: ["Programación Orientada a Objetos", "Protocolo de Objetos", "Proceso de Objetos", "Programación de Objetos"], correct: 0},
-                {question: "¿Qué es JSON?", options: ["Un lenguaje de programación", "Un formato de intercambio de datos", "Una base de datos", "Un protocolo"], correct: 1},
-                {question: "¿Qué es un IDE?", options: ["Un hardware", "Entorno de desarrollo integrado", "Un tipo de red", "Un sistema operativo"], correct: 1}
-            ],
-            4: [
-                {question: "¿Qué protocolo usa HTTP?", options: ["TCP/IP", "UDP", "FTP", "SMTP"], correct: 0},
-                {question: "¿Qué es una VPN?", options: ["Una red social", "Red privada virtual", "Un tipo de virus", "Un protocolo de correo"], correct: 1},
-                {question: "¿Cuántas capas tiene el modelo OSI?", options: ["5", "6", "7", "8"], correct: 2},
-                {question: "¿Qué es un firewall?", options: ["Un tipo de software", "Sistema de protección perimetral", "Un hardware de red", "Un protocolo"], correct: 1},
-                {question: "¿Qué significa TCP?", options: ["Transfer Control Protocol", "Transmission Control Protocol", "Transport Connection Process", "Total Control Protocol"], correct: 1},
-                {question: "¿Qué es un backup?", options: ["Un virus", "Copia de seguridad", "Un protocolo", "Un firewall"], correct: 1},
-                {question: "¿Qué es la virtualización?", options: ["Crear sistemas operativos", "Crear versiones virtuales de recursos", "Un lenguaje", "Un hardware"], correct: 1},
-                {question: "¿Qué protocolo usa el correo electrónico?", options: ["HTTP", "SMTP/POP3/IMAP", "FTP", "SSH"], correct: 1},
-                {question: "¿Qué es un certificado digital?", options: ["Un documento físico", "Documento electrónico que verifica identidad", "Una firma manuscrita", "Una contraseña"], correct: 1},
-                {question: "¿Qué es un ataque de phishing?", options: ["Un virus informático", "Suplantación de identidad para obtener datos", "Un tipo de backup", "Un protocolo"], correct: 1},
-                {question: "¿Qué es el modelo TCP/IP?", options: ["Un modelo de 7 capas", "Un protocolo de correo", "Modelo de protocolos de red", "Un lenguaje de programación"], correct: 2},
-                {question: "¿Qué significa DNS?", options: ["Digital Network System", "Domain Name System", "Data Network Service", "Dynamic Name System"], correct: 1},
-                {question: "¿Qué es un servidor web?", options: ["Un tipo de ordenador", "Software que sirve páginas web", "Un protocolo", "Un lenguaje"], correct: 1},
-                {question: "¿Qué significa HTTPS?", options: ["Hyper Text Transfer Protocol Secure", "Hyper Text Transfer Protocol", "High Transfer Text Protocol", "Hyper Text Transmission Protocol"], correct: 0},
-                {question: "¿Qué es una IP dinámica?", options: ["Una IP fija", "Una IP que cambia automáticamente", "Una IP segura", "Una IP privada"], correct: 1}
-            ]
-        };
+    <section class="card result" id="resultCard" style="margin-top: 12px; display:none;"></section>
+  </div>
 
-        let state = {
-            selectedBlock: null,
-            testMode: 'exam',
-            questionsCount: 15,
-            currentQuestions: [],
-            currentIndex: 0,
-            selectedAnswer: null,
-            answers: [],
-            timerEnabled: true,
-            soundEnabled: true,
-            timer: null,
-            timeElapsed: 0,
-            stats: { totalAnswered: 0, totalCorrect: 0, blockStats: { 1: [], 2: [], 3: [], 4: [] } }
-        };
+  <script>
+    // -------------------------
+    // BANCO DE CASOS PRÁCTICOS
+    // -------------------------
+    const CASES_BANK = [
+      {
+        title: "Caso 1: Hotel 5★ — VLANs, VoIP y Wi-Fi invitados",
+        body:
+`Hotel de 5 estrellas con tres redes: (1) Administración/BackOffice, (2) PMS/TPV/servicios críticos, (3) Wi-Fi de huéspedes.
+Hay VoIP y cámaras IP. Se exige segmentación por VLAN, que huéspedes no alcancen recursos internos, QoS para VoIP,
+acceso remoto seguro para soporte y logs centralizados con monitorización.`
+      },
+      {
+        title: "Caso 2: Ayuntamiento — AD, mínimos privilegios y backups",
+        body:
+`Ayuntamiento con Active Directory, 60 PCs Windows y servidor de ficheros.
+Tras riesgo de ransomware: mínimos privilegios, MFA en accesos críticos, backup 3-2-1 con pruebas de restauración,
+gestión de parches y hardening (desactivar servicios innecesarios).`
+      },
+      {
+        title: "Caso 3: Centro de salud — Web interna y base de datos",
+        body:
+`Aplicación web interna y BD relacional. Requisitos: HTTPS con certificados, logs auditables,
+plan de continuidad (incrementales/diferenciales) y medidas contra SQL Injection y XSS.`
+      },
+      {
+        title: "Caso 4: Logística — VPN site-to-site y ACL",
+        body:
+`Sede y almacén unidos por VPN site-to-site. Subredes 192.168.10.0/24 y 192.168.50.0/24.
+Se pide túnel cifrado, ACL para controlar accesos y NAT/PAT para salida a Internet sin exponer IPs internas.`
+      },
+      {
+        title: "Caso 5: Universidad — Wi-Fi corporativo 802.1X",
+        body:
+`Wi-Fi corporativo con 802.1X (EAP) y directorio (LDAP/AD). Wi-Fi invitados separado.
+Objetivo: autenticación fuerte, separación estricta y registro de accesos/eventos.`
+      },
+      {
+        title: "Caso 6: CPD — Virtualización y restauración",
+        body:
+`CPD con VMs críticas (BD, web, ficheros). Se piden snapshots antes de cambios,
+backups consistentes (no confiar solo en snapshots), monitorización (CPU/RAM/latencia) y restauración probada.`
+      },
+      {
+        title: "Caso 7: Pyme — Correo, SSH y fuerza bruta",
+        body:
+`Pyme con servidor de correo (SMTP) y acceso por SSH. Muchos intentos de fuerza bruta y mala higiene de contraseñas.
+Se pide MFA cuando aplique, políticas de contraseña, firewall/IDS y registro con correlación básica.`
+      },
+      {
+        title: "Caso 8: Comercio — Web en DMZ y TPVs internos",
+        body:
+`Comercio con TPVs y web pública. Se pide servidor web en DMZ, TPVs/BD en red interna sin exposición directa,
+proxy inverso y WAF si es posible.`
+      }
+    ];
 
-        const screens = {
-            home: document.getElementById('homeScreen'),
-            test: document.getElementById('testScreen'),
-            results: document.getElementById('resultsScreen'),
-            stats: document.getElementById('statsScreen'),
-            settings: document.getElementById('settingsScreen')
-        };
+    // -------------------------
+    // BANCO DE PREGUNTAS (240)
+    // Convención: la respuesta correcta está en la opción 0.
+    // El simulador baraja opciones por pregunta y recalcula la correcta en cada intento.
+    // -------------------------
+    const QUESTIONS_BANK = [
+      // Sistemas operativos / procesos / memoria
+      {t:"Función principal de un sistema operativo",o:["Gestionar recursos del sistema","Compilar programas","Diseñar páginas web","Cifrar por defecto todo el disco"],a:0},
+      {t:"Componente del SO que gestiona procesos y memoria a bajo nivel",o:["Kernel","Shell","BIOS","Hipervisor tipo 2"],a:0},
+      {t:"En Linux, comando para listar archivos/directorios",o:["ls","cd","pwd","rm"],a:0},
+      {t:"En Linux, comando para cambiar de directorio",o:["cd","mv","cat","ps"],a:0},
+      {t:"En Linux, comando para ver directorio actual",o:["pwd","ls","whoami","nano"],a:0},
+      {t:"En Linux, comando para ver procesos en tiempo real",o:["top","tar","scp","grep"],a:0},
+      {t:"Permiso 755 en Linux equivale a",o:["rwxr-xr-x","rw-r--r--","rwxrwxrwx","r--r--r--"],a:0},
+      {t:"Comando para cambiar permisos en Linux",o:["chmod","chown","ps","kill"],a:0},
+      {t:"Comando para cambiar propietario en Linux",o:["chown","chmod","mkdir","ln"],a:0},
+      {t:"Un daemon/servicio es",o:["Proceso en segundo plano que presta un servicio","Aplicación con interfaz gráfica","Dispositivo de red","Una partición"],a:0},
+      {t:"Un proceso zombi en Linux es",o:["Proceso finalizado cuyo padre no ha recogido su estado","Proceso que consume toda la RAM","Proceso suspendido por el usuario","Proceso con prioridad máxima"],a:0},
+      {t:"La memoria RAM se caracteriza por",o:["Ser volátil y usada para datos/instrucciones en ejecución","Ser almacenamiento permanente","Ser igual que un SSD","Guardar solo copias de seguridad"],a:0},
+      {t:"La memoria caché L1 es",o:["Más rápida y cercana a la CPU","Más lenta que la RAM","Almacenamiento permanente","Un tipo de swap"],a:0},
+      {t:"Swap en Linux se usa para",o:["Extender memoria usando disco","Cifrar el sistema de archivos","Gestionar usuarios","Resolver nombres DNS"],a:0},
+      {t:"En Windows, utilidad que muestra configuración IP",o:["ipconfig","tasklist","net user","format"],a:0},
+      {t:"En Windows, comando para listar procesos",o:["tasklist","ipconfig","route","nslookup"],a:0},
+      {t:"En Windows, herramienta para administrar servicios",o:["services.msc","regedit","diskmgmt.msc","dxdiag"],a:0},
+      {t:"Administrador de tareas en Windows se abre con",o:["taskmgr.exe","regedit.exe","mmc.exe","cmdkey.exe"],a:0},
+      {t:"Editor del registro de Windows es",o:["regedit","services.msc","eventvwr","dfrgui"],a:0},
+      {t:"Un hipervisor tipo 1 es el que",o:["Se ejecuta directamente sobre el hardware","Necesita un SO anfitrión","Solo funciona con contenedores","Sirve para cifrar tráfico"],a:0},
+      {t:"Un hipervisor tipo 2 es el que",o:["Se ejecuta sobre un SO anfitrión","Se ejecuta en firmware BIOS","Solo existe en Linux","Hace NAT por defecto"],a:0},
+      {t:"Un contenedor (container) es",o:["Aislamiento a nivel de sistema operativo (kernel)","Virtualización completa de hardware","Emulación de CPU","Un RAID por software"],a:0},
+      {t:"Archivo ejecutable típico en Windows",o:[".exe",".txt",".png",".ini"],a:0},
+      {t:"Una DLL en Windows es",o:["Biblioteca de vínculo dinámico","Archivo de configuración","Imagen de disco","Proceso del kernel"],a:0},
+      {t:"Extensión típica de script por lotes en Windows",o:[".bat",".iso",".sys",".dll"],a:0},
+      {t:"PowerShell es",o:["Shell y lenguaje de automatización en Windows","Un antivirus","Un servidor web","Un sistema de archivos"],a:0},
 
-        function loadStats() {
-            const saved = localStorage.getItem('opoStudyStats');
-            if (saved) {
-                state.stats = JSON.parse(saved);
-                updateHomeStats();
-            }
-        }
+      // Redes / OSI / TCP-IP / IPv4/IPv6
+      {t:"Protocolo para resolución de nombres de dominio",o:["DNS","DHCP","FTP","SNMP"],a:0},
+      {t:"Servicio que asigna direcciones IP automáticamente",o:["DHCP","DNS","NTP","SMTP"],a:0},
+      {t:"Dispositivo que interconecta redes distintas",o:["Router","Switch","Hub","Repetidor"],a:0},
+      {t:"Dispositivo que opera principalmente en capa 2",o:["Switch","Router","NAT","Proxy"],a:0},
+      {t:"Capa OSI responsable del direccionamiento lógico",o:["Red","Transporte","Enlace de datos","Física"],a:0},
+      {t:"Capa OSI que usa direcciones MAC",o:["Enlace de datos","Red","Transporte","Aplicación"],a:0},
+      {t:"Dirección loopback típica en IPv4",o:["127.0.0.1","0.0.0.0","255.255.255.255","169.254.10.1"],a:0},
+      {t:"En IPv6, ::1 representa",o:["Loopback","Multicast","Link-local","Anycast"],a:0},
+      {t:"Direcciones IPv6 link-local comienzan por",o:["fe80::/10","2001::/16","ff00::/8","fc00::/7"],a:0},
+      {t:"En IPv6, ff00::/8 corresponde a",o:["Multicast","Unicast global","Loopback","Link-local"],a:0},
+      {t:"Puerto TCP habitual de HTTPS",o:["443","80","22","25"],a:0},
+      {t:"Puerto TCP habitual de HTTP",o:["80","443","53","110"],a:0},
+      {t:"Puerto TCP habitual de SSH",o:["22","23","3389","143"],a:0},
+      {t:"Puerto TCP habitual de SMTP",o:["25","110","443","53"],a:0},
+      {t:"DNS usa habitualmente el puerto",o:["53","80","443","161"],a:0},
+      {t:"SNMP usa habitualmente el puerto UDP",o:["161","53","123","445"],a:0},
+      {t:"RDP usa habitualmente el puerto TCP",o:["3389","22","25","8080"],a:0},
+      {t:"SMB/CIFS usa habitualmente el puerto TCP",o:["445","53","123","21"],a:0},
+      {t:"ICMP se usa para",o:["Diagnóstico/mensajes de control (ping)","Transferencia de ficheros","Cifrado de correo","Asignación de IP"],a:0},
+      {t:"TCP se caracteriza por",o:["Orientado a conexión y fiable","No orientado a conexión","Sin control de flujo","Sin puertos"],a:0},
+      {t:"UDP se caracteriza por",o:["No orientado a conexión","Garantiza entrega","Reordena paquetes siempre","Usa handshake"],a:0},
+      {t:"Handshake TCP se describe como",o:["SYN / SYN-ACK / ACK","GET / POST / PUT","HELLO / OK / BYE","DISCOVER / OFFER / REQUEST"],a:0},
+      {t:"NAT significa",o:["Traducción de direcciones de red","Autenticación de nodos","Túnel de aplicación","Negociación de acceso"],a:0},
+      {t:"PAT (NAT overload) permite",o:["Muchos hosts internos salgan con una IP pública usando puertos","Mapeo 1:1 fijo","Evitar DHCP","Cifrar tráfico TLS"],a:0},
+      {t:"Una VLAN se usa para",o:["Segmentación lógica en capa 2","Aumentar potencia Wi-Fi","Cifrar tráfico","Resolver nombres"],a:0},
+      {t:"Un enlace trunk sirve para",o:["Transportar varias VLANs en un enlace","Transportar solo VoIP","Cifrar tráfico","Reemplazar un router"],a:0},
+      {t:"STP sirve para",o:["Evitar bucles de capa 2","Cifrar enlaces","Asignar IPs","Hacer NAT"],a:0},
+      {t:"QoS se refiere a",o:["Priorización/calidad de servicio de tráfico","Cifrado de disco","Copia de seguridad","Control de versiones"],a:0},
+      {t:"MTU es",o:["Máxima unidad de transmisión","Tiempo de respuesta","Ancho de banda","Tabla de rutas"],a:0},
+      {t:"Latencia en red mide",o:["Tiempo de retraso/ida-vuelta","Datos por segundo","Número de VLANs","Potencia de señal"],a:0},
+      {t:"Throughput es",o:["Datos efectivos por unidad de tiempo","Variación de latencia","Pérdida de paquetes","Número de saltos"],a:0},
+      {t:"Jitter es",o:["Variación de latencia","Ancho de banda máximo","MTU efectiva","Dirección MAC"],a:0},
+      {t:"Máscara /24 equivale a",o:["255.255.255.0","255.255.0.0","255.0.0.0","255.255.255.252"],a:0},
+      {t:"Ejemplo de IP privada (RFC1918)",o:["10.0.5.7","8.8.8.8","1.1.1.1","172.33.1.1"],a:0},
+      {t:"APIPA en Windows se asocia a",o:["169.254.0.0/16 cuando falla DHCP","10.0.0.0/8","224.0.0.0/4","127.0.0.0/8"],a:0},
+      {t:"Gateway por defecto es",o:["Router para salir a otras redes","Servidor DNS","Servidor DHCP","Switch principal"],a:0},
+      {t:"Comando Windows para consultar DNS",o:["nslookup","netstat","tracert","arp"],a:0},
+      {t:"Comando Windows para ver tabla ARP",o:["arp -a","route print","ipconfig /all","netsh advfirewall"],a:0},
+      {t:"tracert/traceroute sirve para",o:["Ver saltos hasta destino","Cambiar IP","Renovar DHCP","Bloquear puertos"],a:0},
+      {t:"NTP se usa para",o:["Sincronización horaria","Gestión remota de switches","Correo electrónico","Transferencia de archivos"],a:0},
+      {t:"CIDR significa",o:["Classless Inter-Domain Routing","Client Internet Data Relay","Central ID Route","Control Inter Domain Replication"],a:0},
+      {t:"En IPv6, el tamaño de dirección es",o:["128 bits","32 bits","64 bits","256 bits"],a:0},
+      {t:"Un puerto (TCP/UDP) es",o:["Identificador lógico de servicio en un host","Conector físico RJ45","Canal de fibra","Tipo de VLAN"],a:0},
+      {t:"Un socket suele definirse como",o:["IP + puerto + protocolo en un extremo","Conector USB","Dirección MAC","Tabla ARP"],a:0},
+      {t:"OSPF es",o:["Protocolo de enrutamiento interior (IGP)","Protocolo de correo","Protocolo de capa 2","Sistema de archivos"],a:0},
+      {t:"BGP se usa principalmente para",o:["Enrutamiento entre sistemas autónomos (Internet)","Evitar bucles capa 2","Asignar IPs","Cifrar tráfico"],a:0},
+      {t:"Una ACL en red es",o:["Lista de control de acceso","Copia de seguridad","Capa de aplicación","Algoritmo de cifrado"],a:0},
+      {t:"DMZ es",o:["Zona perimetral para servicios expuestos","Zona de cifrado de disco","Tipo de VLAN privada","Una tabla de rutas"],a:0},
 
-        function saveStats() {
-            localStorage.setItem('opoStudyStats', JSON.stringify(state.stats));
-        }
+      // Seguridad / criptografía / políticas
+      {t:"Principio de mínimos privilegios significa",o:["Dar solo permisos necesarios","Dar admin a todos","Eliminar contraseñas","Cifrar la RAM"],a:0},
+      {t:"MFA significa",o:["Autenticación multifactor","Firewall múltiple avanzado","Modo forzado de acceso","Marco de funciones admin"],a:0},
+      {t:"Triada CIA es",o:["Confidencialidad, Integridad y Disponibilidad","Control, Interfaz y Acceso","Cifrado, Identidad y Auditoría","Conexión, Internet y Aplicación"],a:0},
+      {t:"Phishing es",o:["Suplantación para robar credenciales","Copia diferencial","Control de versiones","Segmentación VLAN"],a:0},
+      {t:"Ransomware es",o:["Malware que cifra archivos y pide rescate","Software de backup","Firewall web","Sistema de logs"],a:0},
+      {t:"Un firewall se usa para",o:["Filtrar tráfico según reglas","Aumentar ancho de banda","Reparar discos","Resolver DNS"],a:0},
+      {t:"IDS es",o:["Sistema de detección de intrusiones","Sistema de directorio","Servidor de impresión","Motor de BD"],a:0},
+      {t:"IPS se diferencia de IDS porque",o:["Puede bloquear activamente","Solo registra logs","Cifra el tráfico","Asigna IPs"],a:0},
+      {t:"Hardening es",o:["Reducir superficie de ataque configurando y eliminando servicios","Aumentar RAM","Cambiar cableado","Activar NAT"],a:0},
+      {t:"Fuerza bruta es",o:["Probar muchas contraseñas hasta acertar","Inyectar SQL","Cambiar VLANs","Sincronizar NTP"],a:0},
+      {t:"DoS significa",o:["Denegación de servicio","Detección de sistema","Dominio de seguridad","Desarrollo orientado a servicios"],a:0},
+      {t:"DDoS es",o:["DoS distribuido desde múltiples orígenes","DoS por DNS","Cifrado doble","Ataque físico al CPD"],a:0},
+      {t:"MITM es",o:["Ataque de intermediario en la comunicación","Ataque físico","Ataque de BIOS","Ataque de disco"],a:0},
+      {t:"Hash es",o:["Resumen unidireccional","Cifrado simétrico","Cifrado asimétrico","Compresión reversible"],a:0},
+      {t:"Ejemplo de cifrado simétrico",o:["AES","RSA","DSA","ECC"],a:0},
+      {t:"Ejemplo de cifrado asimétrico",o:["RSA","AES","ChaCha20","Blowfish"],a:0},
+      {t:"TLS se usa para",o:["Cifrar comunicaciones en tránsito","Cifrar discos en reposo","Asignar IPs","Gestionar switches"],a:0},
+      {t:"Un certificado X.509 sirve para",o:["Vincular identidad con clave pública","Guardar contraseñas en texto plano","Hacer NAT","Crear VLANs"],a:0},
+      {t:"VPN sirve para",o:["Crear un túnel cifrado entre redes/equipos","Aumentar potencia Wi-Fi","Eliminar malware","Hacer DNS"],a:0},
+      {t:"CVE es",o:["Identificador público de vulnerabilidad","Algoritmo de cifrado","Protocolo de correo","Formato de imagen"],a:0},
+      {t:"Exploit es",o:["Código/técnica que aprovecha una vulnerabilidad","Copia de seguridad","Proceso zombi","Política de grupo"],a:0},
+      {t:"Patch management es",o:["Gestión de actualizaciones y parches","Gestión de VLANs","Gestión de backups","Gestión de certificados"],a:0},
+      {t:"Keylogger es",o:["Malware que registra pulsaciones","Driver de teclado","Antivirus en nube","Tabla ARP"],a:0},
+      {t:"SIEM es",o:["Plataforma que centraliza y correlaciona eventos de seguridad","Sistema de archivos","Switch gestionable","Certificado digital"],a:0},
+      {t:"WAF es",o:["Firewall de aplicaciones web","Sistema de archivos","Control de versiones","Servidor DNS"],a:0},
+      {t:"802.1X es",o:["Control de acceso a red basado en puertos","Un estándar de fibra","Un tipo de NAT","Un tipo de RAID"],a:0},
+      {t:"EAP en 802.1X es",o:["Protocolo de autenticación extensible","Protocolo de enrutamiento","Protocolo de correo","Protocolo de tiempo"],a:0},
+      {t:"WPA2 es",o:["Mecanismo de seguridad Wi-Fi","Protocolo DNS","Sistema de archivos","Control de versiones"],a:0},
+      {t:"SSID es",o:["Nombre de red Wi-Fi","Clave privada","Dirección MAC","Puerto TCP"],a:0},
+      {t:"Dirección MAC es",o:["Identificador físico de interfaz de red","IP pública","Nombre DNS","MTU"],a:0},
 
-        function updateHomeStats() {
-            document.getElementById('totalAnswered').textContent = state.stats.totalAnswered;
-            document.getElementById('totalCorrect').textContent = state.stats.totalCorrect;
-            const average = state.stats.totalAnswered > 0 ? Math.round((state.stats.totalCorrect / state.stats.totalAnswered) * 100) : 0;
-            document.getElementById('averageScore').textContent = average + '%';
-        }
+      // Backups / almacenamiento
+      {t:"Copia completa es",o:["Copia de todos los datos seleccionados","Copia solo de cambios","Copia solo de MBR","Copia solo de metadatos"],a:0},
+      {t:"Copia diferencial guarda",o:["Cambios desde la última copia completa","Cambios desde la última incremental","Todo siempre","Solo logs"],a:0},
+      {t:"Copia incremental guarda",o:["Cambios desde la última copia (completa o incremental)","Cambios desde la última completa","Todo siempre","Solo sistema"],a:0},
+      {t:"Regla 3-2-1 recomienda",o:["3 copias, 2 medios, 1 fuera de sitio","3 discos, 2 particiones, 1 RAID","3 usuarios, 2 contraseñas, 1 MFA","3 VLANs, 2 routers, 1 firewall"],a:0},
+      {t:"RAID 0 ofrece",o:["Rendimiento por striping sin tolerancia a fallos","Espejo con redundancia","Paridad distribuida","Paridad doble"],a:0},
+      {t:"RAID 1 ofrece",o:["Redundancia por espejo","Striping sin paridad","Paridad distribuida","Máxima capacidad"],a:0},
+      {t:"RAID 5 ofrece",o:["Paridad distribuida y tolerancia a 1 fallo","Tolerancia a 2 fallos","Espejo triple","Solo rendimiento"],a:0},
+      {t:"SAN es",o:["Red de almacenamiento dedicada","Red Wi-Fi corporativa","Servidor DNS","Firewall web"],a:0},
+      {t:"NAS es",o:["Almacenamiento conectado a red","Un tipo de DNS","Un protocolo de correo","Una técnica de NAT"],a:0},
+      {t:"Snapshot en virtualización es",o:["Punto de restauración del estado de una VM","Copia diferencial de red","Hash de contraseña","Switch virtual"],a:0},
 
-        function showScreen(screenName) {
-            Object.values(screens).forEach(s => s.classList.remove('active'));
-            screens[screenName].classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector('.nav-item[data-screen="' + screenName + '"]').classList.add('active');
-            if (screenName === 'stats') updateStatsScreen();
-        }
+      // Virtualización / contenedores / DevOps básico
+      {t:"Una VM es",o:["Máquina virtual","Memoria volátil","Mapa de VLAN","Módulo de verificación"],a:0},
+      {t:"Docker se asocia principalmente a",o:["Contenedores","Hipervisores tipo 1","Sistemas de archivos NTFS","Protocolos de correo"],a:0},
+      {t:"CI/CD significa",o:["Integración continua y entrega/despliegue continuo","Control interno de discos","Cifrado integral de datos","Conmutación interna de dominios"],a:0},
+      {t:"Un pipeline en CI/CD es",o:["Cadena automatizada de pasos (build/test/deploy)","Tabla ARP","Tipo de RAID","Protocolo SMTP"],a:0},
 
-        function selectBlock(blockNum) {
-            state.selectedBlock = blockNum;
-            document.querySelectorAll('.block-card').forEach(card => {
-           card.classList.toggle('selected', parseInt(card.dataset.block, 10) === blockNum);
-  });
-  document.getElementById('startTest').disabled = false;
-}    
+      // Bases de datos / SQL
+      {t:"SQL es",o:["Lenguaje para gestionar BD relacionales","Lenguaje de marcado web","Formato de logs","Protocolo de red"],a:0},
+      {t:"SELECT sirve para",o:["Consultar datos","Eliminar tabla","Crear índice","Cambiar permisos"],a:0},
+      {t:"INSERT sirve para",o:["Insertar filas","Actualizar filas","Borrar filas","Crear vistas"],a:0},
+      {t:"UPDATE sirve para",o:["Actualizar filas","Insertar filas","Borrar tabla","Crear usuario"],a:0},
+      {t:"DELETE sirve para",o:["Eliminar filas","Eliminar esquema","Crear tabla","Cambiar propietario"],a:0},
+      {t:"Clave primaria es",o:["Identificador único de fila","Campo opcional","Campo siempre nulo","Índice no único"],a:0},
+      {t:"Clave foránea es",o:["Campo que referencia una PK de otra tabla","Campo cifrado","Campo autoincrement obligatorio","Vista materializada"],a:0},
+      {t:"Normalización busca",o:["Reducir redundancia y anomalías","Aumentar duplicidad","Eliminar índices","Cifrar tablas"],a:0},
+      {t:"En ACID, la I significa",o:["Aislamiento","Interoperabilidad","Indexación","Identidad"],a:0},
+      {t:"Índice en BD se usa para",o:["Acelerar búsquedas a costa de espacio/escritura","Cifrar tablas","Eliminar duplicados","Evitar backups"],a:0},
+      {t:"JOIN sirve para",o:["Combinar filas de tablas relacionadas","Borrar tablas","Crear usuario","Actualizar índices"],a:0},
+      {t:"INNER JOIN devuelve",o:["Coincidencias en ambas tablas","Todas las filas de la izquierda","Todas las filas de la derecha","Ninguna fila"],a:0},
 
-        function selectMode(mode) {
-            state.testMode = mode;
-            if (mode === 'full') {
-                state.questionsCount = 30;
-                state.selectedBlock = null;
-                document.querySelectorAll('.block-card').forEach(card => card.classList.remove('selected'));
-                document.getElementById('startTest').disabled = false;
-            } else if (mode === 'exam') {
-                state.questionsCount = 15;
-            } else {
-                state.questionsCount = 15;
-            }
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-              btn.classList.toggle('active', btn.dataset.mode === mode);
-  });
+      // Web / HTTP / seguridad web
+      {t:"Código HTTP 200 indica",o:["OK","No autorizado","No encontrado","Error interno"],a:0},
+      {t:"Código HTTP 404 indica",o:["No encontrado","OK","Prohibido","Redirección"],a:0},
+      {t:"Código HTTP 301 indica",o:["Redirección permanente","OK","Error de gateway","No autorizado"],a:0},
+      {t:"Método HTTP típico para obtener recurso",o:["GET","POST","PATCH","CONNECT"],a:0},
+      {t:"Método HTTP típico para crear recurso",o:["POST","GET","HEAD","TRACE"],a:0},
+      {t:"Cookie sirve para",o:["Mantener estado/sesión en el cliente","Cifrar tráfico TLS","Asignar IP","Resolver DNS"],a:0},
+      {t:"SQL Injection es",o:["Inyección de SQL en entradas para alterar consultas","Ataque por fuerza bruta a SSH","Ataque a Wi-Fi por WPS","Ataque de BIOS"],a:0},
+      {t:"Medida típica contra SQLi",o:["Consultas parametrizadas (prepared statements)","Desactivar DNS","Cambiar máscara","Aumentar MTU"],a:0},
+      {t:"XSS es",o:["Inyección de scripts en el navegador","Cifrado simétrico","Un tipo de RAID","Un tipo de VLAN"],a:0},
+      {t:"Medida típica contra XSS",o:["Escapar/sanitizar salida y usar CSP","Desactivar DHCP","Cambiar puerto 22","Aumentar RAM"],a:0},
+      {t:"CSRF es",o:["Falsificación de petición en sitios cruzados","Escaneo de puertos","Ataque a BIOS","Ataque de disco"],a:0},
+      {t:"Medida típica contra CSRF",o:["Token anti-CSRF y cookies SameSite","Desactivar NTP","Cambiar MTU","Activar NAT"],a:0},
 
-  document.getElementById('questionsCountDisplay').textContent = state.questionsCount;
+      // Directorio / autenticación / IAM
+      {t:"LDAP se usa para",o:["Servicios de directorio y consulta","Transferencia de ficheros","Monitorización SNMP","Cifrado de disco"],a:0},
+      {t:"Active Directory es",o:["Servicio de directorio de Microsoft","Sistema de archivos Linux","Firewall perimetral","Servidor web"],a:0},
+      {t:"Kerberos se usa para",o:["Autenticación basada en tickets","Resolución de nombres","Copia de seguridad","Virtualización"],a:0},
 
-  // ✅ clave: habilitar/deshabilitar start según modo
-  document.getElementById('startTest').disabled = (mode !== 'full' && !state.selectedBlock);
-} 
+      // Monitorización / logs / troubleshooting
+      {t:"syslog es",o:["Sistema estándar de registro de eventos","Sistema de cifrado","Protocolo de archivos","Sistema de virtualización"],a:0},
+      {t:"Un log es",o:["Registro de eventos","Copia de seguridad","Clave privada","Tabla ARP"],a:0},
+      {t:"netstat se usa para",o:["Ver conexiones/puertos en uso","Renovar DHCP","Resolver DNS","Cambiar máscara"],a:0},
+      {t:"ping se usa para",o:["Comprobar conectividad ICMP","Transferir ficheros","Crear usuarios","Configurar VLAN"],a:0},
 
-    function generateTest() {
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('timer').textContent = '00:00';
+      // Hardware / almacenamiento / buses
+      {t:"CPU significa",o:["Unidad Central de Procesamiento","Control de Puertos Unificados","Unidad de Cifrado Público","Caché Principal Unificada"],a:0},
+      {t:"SSD destaca por",o:["Menor latencia y mayor velocidad","Partes móviles","Mayor ruido","Menor fiabilidad siempre"],a:0},
+      {t:"HDD se caracteriza por",o:["Uso de partes mecánicas","Ser memoria volátil","Ser caché L1","No poder fallar"],a:0},
+      {t:"Bus moderno para periféricos de alta velocidad",o:["PCIe","ISA","AGP","Parallel ATA"],a:0},
+      {t:"Archivo ISO es",o:["Imagen de disco","Log de sistema","Hash","Driver"],a:0},
+      {t:"Checksum es",o:["Suma de verificación","Cifrado asimétrico","Token de sesión","Tipo de VLAN"],a:0},
 
-  let blockQuestions;
-  if (state.testMode === 'full') {
-    blockQuestions = [...questionsDB[1], ...questionsDB[2], ...questionsDB[3], ...questionsDB[4]];
-  } else {
-    blockQuestions = questionsDB[state.selectedBlock];
-  }
+      // Cableado / infra
+      {t:"UTP significa",o:["Unshielded Twisted Pair","Universal Transfer Protocol","Unified Transport Port","User Terminal Pair"],a:0},
+      {t:"Fibra óptica destaca por",o:["Alta velocidad y gran distancia con baja atenuación","Mayor interferencia EMI","Menor ancho de banda","Mayor latencia siempre"],a:0},
+      {t:"Categoría habitual en Ethernet cobre actual",o:["Cat6/Cat6A","Cat1","Cat2","Cat3 exclusivamente"],a:0},
 
-  const shuffled = [...blockQuestions].sort(() => Math.random() - 0.5);
-  state.currentQuestions = shuffled.slice(0, state.questionsCount);
-  state.currentIndex = 0;
-  state.answers = [];
-  state.timeElapsed = 0;
+      // Control de versiones / Git
+      {t:"Git es",o:["Sistema de control de versiones distribuido","Servidor DNS","Lenguaje de consultas","Motor de virtualización"],a:0},
+      {t:"En Git, commit es",o:["Guardar un cambio en el historial","Borrar repositorio","Descargar dependencias","Crear rama remota"],a:0},
+      {t:"En Git, branch es",o:["Rama de desarrollo","Copia de seguridad","Servidor de build","Tipo de firewall"],a:0},
+      {t:"En Git, merge es",o:["Integrar cambios entre ramas","Eliminar historial","Crear un repositorio remoto","Cifrar commits"],a:0},
 
-  showQuestion();
-  startTimer();
-  showScreen('test');
-}   
+      // --- A partir de aquí: banco ampliado (para llegar a 240) ---
+      // Redes avanzadas / servicios
+      {t:"ARP se utiliza para",o:["Resolver IP a MAC en LAN","Resolver nombres DNS","Cifrar tráfico","Asignar IPs"],a:0},
+      {t:"DHCPDISCOVER es un mensaje de",o:["DHCP al iniciar obtención de IP","DNS para resolver dominios","NTP para hora","SNMP para monitorización"],a:0},
+      {t:"Una dirección IPv4 multicast pertenece a",o:["224.0.0.0/4","10.0.0.0/8","172.16.0.0/12","192.168.0.0/16"],a:0},
+      {t:"0.0.0.0 en routing suele indicar",o:["Ruta por defecto","Loopback","Multicast","APIPA"],a:0},
+      {t:"255.255.255.255 es",o:["Broadcast limitado","Loopback","Multicast","Anycast"],a:0},
+      {t:"Un proxy inverso se coloca",o:["Delante de servidores para publicación/balanceo","Solo en el cliente","Dentro del BIOS","En la RAM"],a:0},
+      {t:"Un balanceador de carga hace",o:["Distribuir tráfico entre varios servidores","Cifrar tráfico TLS","Asignar IP por DHCP","Resolver DNS"],a:0},
+      {t:"Un servidor DNS autoritativo",o:["Responde con autoridad sobre una zona","Solo hace caching","Solo entrega DHCP","Solo hace NAT"],a:0},
+      {t:"Un resolver/caching DNS",o:["Guarda respuestas para acelerar consultas","Firma certificados","Hace VLAN trunk","Gestiona RAID"],a:0},
+      {t:"DNSSEC aporta",o:["Integridad/autenticidad de respuestas DNS","Cifrado total del DNS siempre","Asignación IP automática","NAT en routers"],a:0},
+      {t:"TFTP se usa típicamente para",o:["Transferencias simples (p.ej. arranque/firmware)","Correo seguro","Escritorio remoto","Cifrado asimétrico"],a:0},
 
-        function showQuestion() {
-            const question = state.currentQuestions[state.currentIndex];
-            document.getElementById('questionCounter').textContent = 'Pregunta ' + (state.currentIndex + 1) + ' de ' + state.currentQuestions.length;
-            document.getElementById('questionText').textContent = question.question;
-            
-            let questionOptions = question.options.map((opt, i) => {
-                return '<div class="option" data-index="' + i + '"><span class="letter">' + String.fromCharCode(65 + i) + '</span><span>' + opt + '</span></div>';
-            });
-            document.getElementById('optionsList').innerHTML = questionOptions.join('');
-            
-            state.selectedAnswer = null;
-            document.getElementById('nextQuestion').disabled = true;
-            
-            document.querySelectorAll('.option').forEach(opt => {
-                opt.addEventListener('click', () => selectAnswer(parseInt(opt.dataset.index)));
-            });
-        }
+      // Seguridad extra
+      {t:"Un rootkit es",o:["Malware que intenta ocultarse con privilegios elevados","Antivirus de pago","Herramienta de backup","Cifrado asimétrico"],a:0},
+      {t:"Un Trojan (troyano) es",o:["Malware que se hace pasar por software legítimo","Ataque DDoS","Firewall web","Sistema de logs"],a:0},
+      {t:"Spyware es",o:["Malware que espía/recopila información","Sistema de backup","VPN","Servicio DNS"],a:0},
+      {t:"Adware es",o:["Software malicioso o no deseado que muestra publicidad","Cifrado asimétrico","Control de versiones","Balanceo de carga"],a:0},
+      {t:"Política de contraseñas robusta incluye",o:["Longitud y evitar reutilización/comprometidas","Usar siempre '1234'","Desactivar MFA","Publicarlas en un documento"],a:0},
+      {t:"Principio de defensa en profundidad implica",o:["Múltiples capas de seguridad","Un único firewall y ya","Solo antivirus","Solo cifrado"],a:0},
+      {t:"Cifrado en reposo se refiere a",o:["Cifrar datos almacenados (disco/BD)","Cifrar tráfico de red","Cifrar solo DNS","Cifrar solo VoIP"],a:0},
+      {t:"Cifrado en tránsito se refiere a",o:["Cifrar comunicaciones de red","Cifrar el disco duro","Cifrar backups offline","Cifrar BIOS"],a:0},
+      {t:"Un token OTP es",o:["Código de un solo uso","Hash reversible","IP privada","Puerto efímero fijo"],a:0},
+      {t:"Pharming es",o:["Redirección maliciosa a sitios falsos (p.ej. por DNS)","Ataque de fuerza bruta","Ataque DDoS","Ataque físico"],a:0},
 
-        function selectAnswer(index) {
-            if (state.testMode === 'exam' && state.selectedAnswer !== null) return;
-            state.selectedAnswer = index;
-            document.querySelectorAll('.option').forEach((opt, i) => {
-                opt.classList.remove('selected', 'correct', 'incorrect');
-                if (i === index) opt.classList.add('selected');
-            });
-            if (state.testMode === 'practice') {
-                const question = state.currentQuestions[state.currentIndex];
-                document.querySelectorAll('.option').forEach((opt, i) => {
-                    if (i === question.correct) opt.classList.add('correct');
-                    else if (i === index && i !== question.correct) opt.classList.add('incorrect');
-                });
-            }
-            document.getElementById('nextQuestion').disabled = false;
-        }
+      // Windows administración
+      {t:"MMC en Windows es",o:["Consola de administración (Microsoft Management Console)","Motor de base de datos","Protocolo de red","Sistema de archivos"],a:0},
+      {t:"eventvwr abre",o:["Visor de eventos","Editor de registro","Administrador de discos","Firewall avanzado"],a:0},
+      {t:"gpedit.msc gestiona",o:["Directivas de grupo local","Servicios","Registro","Controladores de impresora"],a:0},
+      {t:"diskmgmt.msc abre",o:["Administración de discos","Visor de eventos","Servicios","Monitor de rendimiento"],a:0},
+      {t:"En Windows, NTFS permite",o:["Permisos ACL y características avanzadas","Solo nombres 8.3","No soporta archivos grandes","Solo lectura"],a:0},
 
-        function nextQuestion() {
-            const question = state.currentQuestions[state.currentIndex];
-            const isCorrect = state.selectedAnswer === question.correct;
-            
-            state.answers.push({ question: state.currentIndex, selected: state.selectedAnswer, correct: question.correct, isCorrect: isCorrect });
-            
-            state.stats.totalAnswered++;
-            if (isCorrect) state.stats.totalCorrect++;
-            if (state.selectedBlock) state.stats.blockStats[state.selectedBlock].push(isCorrect ? 1 : 0);
-            saveStats();
+      // Linux administración
+      {t:"En Linux, grep sirve para",o:["Buscar patrones en texto","Crear usuarios","Configurar DNS","Gestionar VLAN"],a:0},
+      {t:"En Linux, tar sirve para",o:["Empaquetar/archivar ficheros","Cambiar IP","Ver rutas","Gestionar servicios"],a:0},
+      {t:"Paquete .deb es típico de",o:["Debian/Ubuntu","Fedora/RedHat","Arch","Windows"],a:0},
+      {t:"Paquete .rpm es típico de",o:["RedHat/Fedora","Debian/Ubuntu","macOS","Android"],a:0},
+      {t:"Un repositorio de paquetes es",o:["Fuente de software gestionado","Un firewall","Una VLAN","Un RAID"],a:0},
 
-            state.currentIndex++;
-            if (state.currentIndex >= state.currentQuestions.length) {
-                finishTest();
-            } else {
-                showQuestion();
-                updateProgress();
-            }
-        }
+      // HTTP / web extra
+      {t:"Código HTTP 401 significa",o:["No autorizado (autenticación requerida)","Prohibido","No encontrado","OK"],a:0},
+      {t:"Código HTTP 403 significa",o:["Prohibido","No autorizado","No encontrado","Redirección"],a:0},
+      {t:"Código HTTP 500 significa",o:["Error interno del servidor","No encontrado","OK","No autorizado"],a:0},
+      {t:"PUT suele usarse para",o:["Crear/reemplazar un recurso de forma idempotente","Obtener recurso","Eliminar recurso","Conectar túnel"],a:0},
+      {t:"DELETE en HTTP se usa para",o:["Eliminar un recurso","Crear un recurso","Actualizar parcialmente","Consultar un recurso"],a:0},
 
-        function updateProgress() {
-            const progress = (state.currentIndex / state.currentQuestions.length) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
-        }
+      // SQL extra
+      {t:"Una transacción en BD es",o:["Unidad de trabajo que se confirma (COMMIT) o revierte (ROLLBACK)","Un índice","Una clave foránea","Una vista"],a:0},
+      {t:"ROLLBACK hace",o:["Revertir cambios no confirmados","Confirmar cambios","Crear tabla","Borrar índice"],a:0},
+      {t:"COMMIT hace",o:["Confirmar cambios de la transacción","Revertir cambios","Crear usuario","Cerrar conexión TCP"],a:0},
+      {t:"Una vista (VIEW) es",o:["Consulta guardada como objeto lógico","Copia física de la tabla siempre","Un índice único","Un trigger"],a:0},
+      {t:"Un trigger es",o:["Procedimiento que se ejecuta ante eventos (INSERT/UPDATE/DELETE)","Un índice","Una clave primaria","Una copia de seguridad"],a:0},
 
-        function startTimer() {
-            if (state.timer) clearInterval(state.timer);
-            if (!state.timerEnabled) return;
-            state.timer = setInterval(() => {
-                state.timeElapsed++;
-                const minutes = Math.floor(state.timeElapsed / 60);
-                const seconds = state.timeElapsed % 60;
-                document.getElementById('timer').textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
-            }, 1000);
-        }
+      // Monitorización / operaciones
+      {t:"Prometheus es conocido por",o:["Monitorización/metrics","Correo SMTP","DNS autoritativo","Control de versiones"],a:0},
+      {t:"Grafana se usa para",o:["Visualización de métricas/dashboards","Asignar IPs","Cifrar discos","Gestionar VLANs"],a:0},
+      {t:"Un SLA define",o:["Nivel de servicio acordado","Algoritmo de cifrado","Tabla de rutas","Sistema de archivos"],a:0},
+      {t:"MTTR significa",o:["Tiempo medio de reparación","Tiempo medio entre fallos","Máxima unidad de transmisión","Modelo de autenticación"],a:0},
+      {t:"MTBF significa",o:["Tiempo medio entre fallos","Tiempo medio de reparación","Tiempo medio de backup","Modelo de base de datos"],a:0},
 
-        function stopTimer() {
-            if (state.timer) clearInterval(state.timer);
-        }
+      // Añadimos más preguntas para llegar a 240 sin repetir ideas clave
+      // (bloques cortos, pero correctos)
+      {t:"Un puerto efímero es",o:["Puerto temporal asignado al cliente","Puerto fijo 80","Puerto reservado BIOS","Puerto físico RJ45"],a:0},
+      {t:"Un servidor DHCP entrega además de IP",o:["Máscara, gateway y DNS (opciones)","Certificados X.509","RAID 5","Políticas de grupo"],a:0},
+      {t:"Una ruta estática es",o:["Ruta configurada manualmente","Ruta aprendida por OSPF","Ruta aprendida por BGP","Ruta aprendida por STP"],a:0},
+      {t:"Una tabla de rutas pertenece a",o:["Capa 3 (red) en routers/hosts","Capa 2 exclusivamente","Capa física","Capa 7"],a:0},
+      {t:"Un switch no gestionable normalmente",o:["No permite configurar VLANs/ACLs","Hace NAT por defecto","Hace DNSSEC","Hace RAID"],a:0},
+      {t:"SPAN/port mirroring se usa para",o:["Copiar tráfico a un puerto para análisis","Aumentar throughput","Cifrar tráfico","Asignar IP"],a:0},
+      {t:"Wireshark es",o:["Analizador de paquetes","Servidor web","Sistema de archivos","Antivirus"],a:0},
+      {t:"Un paquete TCP tiene",o:["Puertos de origen/destino","Solo direcciones MAC","Solo TTL","Solo SSID"],a:0},
+      {t:"TTL en IP sirve para",o:["Evitar bucles limitando saltos","Cifrar cabeceras","Asignar IP","Autenticar usuario"],a:0},
+      {t:"DNS round-robin se usa como",o:["Técnica simple de reparto de carga","Cifrado DNS","Gestión de VLAN","NAT dinámico"],a:0},
+      {t:"Un reverse proxy puede ayudar a",o:["Terminar TLS y balancear/pasar a backend","Asignar IP","Reparar discos","Cambiar permisos NTFS"],a:0},
+      {t:"Un proxy forward típicamente",o:["Intermedia salidas del cliente a Internet","Publica servidores internos","Hace RAID","Hace DHCP"],a:0},
+      {t:"Un honeypot es",o:["Sistema señuelo para atraer y estudiar ataques","Sistema de backup","Sistema de cifrado","Servidor de correo"],a:0},
+      {t:"Una baseline de seguridad es",o:["Configuración mínima recomendada","Un tipo de ataque","Un servidor DNS","Una VLAN de invitados"],a:0},
+      {t:"Principio de segregación de funciones busca",o:["Evitar que una sola persona controle todo el proceso","Dar admin a todos","Eliminar auditoría","Desactivar logs"],a:0},
+      {t:"Registro centralizado ayuda a",o:["Investigar incidentes y correlacionar eventos","Aumentar ancho de banda","Reducir MTU","Reemplazar VPN"],a:0},
+      {t:"Un backup verificado requiere",o:["Pruebas de restauración","Solo checksum","Solo snapshot","Solo RAID 1"],a:0},
+      {t:"RAID no sustituye a backups porque",o:["Protege disponibilidad, no errores lógicos/borrados/malware","Es más barato","Cifra datos","Reemplaza MFA"],a:0},
+      {t:"Principio de menor exposición implica",o:["Cerrar puertos/servicios no necesarios","Abrir todo para facilitar soporte","Desactivar firewall","Quitar logs"],a:0},
+      {t:"Un puerto 'cerrado' en escaneo indica",o:["No hay servicio escuchando o está filtrado","Hay servicio activo siempre","Hay DNSSEC","Hay NAT estático"],a:0},
+      {t:"Un 'puerto abierto' indica",o:["Servicio escuchando y accesible","No hay red","Solo tráfico multicast","Solo ARP"],a:0},
+      {t:"Una DMZ bien diseñada",o:["Aísla servicios expuestos de la red interna","Conecta invitados a administración","Elimina necesidad de firewall","Reemplaza VLANs"],a:0},
+      {t:"Segmentar invitados en hotel evita",o:["Acceso a PMS/TPV y recursos internos","Que funcione el Wi-Fi","Que haya DHCP","Que exista DNS"],a:0},
+      {t:"QoS para VoIP busca",o:["Reducir latencia/jitter y priorizar voz","Aumentar tamaño de disco","Cifrar llamadas sin TLS/SRTP","Crear VLANs automáticamente"],a:0},
+      {t:"SIP es",o:["Protocolo de señalización VoIP","Servidor de archivos","Protocolo de BD","Sistema de logs"],a:0},
+      {t:"SRTP se usa para",o:["Cifrado de audio RTP","Asignar IP","Resolver DNS","Hacer NAT"],a:0},
+      {t:"Un salto (hop) en red es",o:["Paso por un router","Paso por un switch","Paso por un cable","Paso por un AP"],a:0},
+      {t:"Una LAN es",o:["Red de área local","Red de área amplia","Red metropolitana","Red personal"],a:0},
+      {t:"Una WAN es",o:["Red de área amplia","Red de área local","Red personal","Red de almacenamiento"],a:0},
+      {t:"Una WLAN es",o:["Red local inalámbrica","Red de almacenamiento","Red metropolitana","Red de área amplia"],a:0},
+      {t:"Un AP (Access Point) proporciona",o:["Conectividad Wi-Fi a una LAN","NAT por defecto","RAID 5","DNS autoritativo"],a:0},
+      {t:"Band steering en Wi-Fi busca",o:["Mover clientes entre bandas (2.4/5 GHz) según conveniencia","Cifrar DNS","Crear VLAN trunk","Hacer RAID"],a:0},
+      {t:"Roaming Wi-Fi significa",o:["Cambio entre APs manteniendo conectividad","Cambio de IP pública","Cambio de DNS","Cambio de MTU"],a:0},
+      {t:"Un 'SSID invitados' debería",o:["Ir separado de corporativo (VLAN/ACL)","Tener acceso a AD","Tener acceso a BD","Tener acceso a PMS"],a:0},
+      {t:"Un DNS público típico (ejemplo) es",o:["8.8.8.8","10.0.0.1","192.168.1.1","127.0.0.1"],a:0},
 
-        function finishTest() {
-            stopTimer();
-            const correct = state.answers.filter(a => a.isCorrect).length;
-            const total = state.answers.length;
-            const percentage = Math.round((correct / total) * 100);
-            
-            document.getElementById('resultScore').textContent = percentage + '%';
-            document.getElementById('correctCount').textContent = correct;
-            document.getElementById('incorrectCount').textContent = total - correct;
-            
-            const minutes = Math.floor(state.timeElapsed / 60);
-            const seconds = state.timeElapsed % 60;
-            document.getElementById('timeSpent').textContent = minutes + ':' + seconds.toString().padStart(2, '0');
-            
-            let label = '¡Examen completado!';
-            if (percentage >= 90) label = '¡Excelente! 🎉';
-            else if (percentage >= 70) label = '¡Muy bien! 👍';
-            else if (percentage >= 50) label = '¡Puedes mejorar! 💪';
-            else label = '¡Sigue practicando! 📚';
-            
-            document.getElementById('resultLabel').textContent = label;
-            document.getElementById('progressFill').style.width = '100%';
-            updateHomeStats();
-            showScreen('results');
-        }
+      // Más administración, prácticas, conceptos (para completar banco)
+      {t:"Un plan de continuidad se centra en",o:["Mantener/reanudar servicio tras incidentes","Cambiar teclado/ratón","Aumentar FPS","Eliminar VLANs"],a:0},
+      {t:"Un RPO define",o:["Pérdida máxima aceptable de datos en tiempo","Tiempo máximo de caída aceptable","Ancho de banda","Número de routers"],a:0},
+      {t:"Un RTO define",o:["Tiempo máximo aceptable para recuperar servicio","Pérdida máxima de datos","Tipo de RAID","Tipo de cifrado"],a:0},
+      {t:"Un inventario de activos incluye",o:["Hardware, software y responsables","Solo contraseñas","Solo VLANs","Solo backups"],a:0},
+      {t:"Gestión de cambios busca",o:["Controlar y documentar cambios para reducir riesgos","Hacer cambios sin avisar","Eliminar logs","Evitar backups"],a:0},
+      {t:"Un entorno de preproducción sirve para",o:["Probar cambios antes de producción","Eliminar usuarios","Hacer NAT","Cambiar SSID"],a:0},
+      {t:"Un rollback en cambios es",o:["Volver a un estado anterior si falla","Confirmar cambios","Cifrar backups","Cambiar DNS"],a:0},
+      {t:"Principio de 'least privilege' aplicado a cuentas de servicio",o:["Dar solo permisos necesarios para su función","Dar permisos de dominio completos","Compartir credenciales","Desactivar auditoría"],a:0},
+      {t:"Un acceso remoto seguro para soporte suele implicar",o:["VPN + MFA + registros","Abrir RDP a Internet sin más","Desactivar firewall","Usar Telnet"],a:0},
+      {t:"Telnet es inseguro porque",o:["Transmite en texto claro","Usa TLS 1.3","Usa MFA por defecto","No usa puertos"],a:0},
+      {t:"SFTP es",o:["Transferencia de archivos sobre SSH","FTP con HTTP","SMTP cifrado","DNS seguro"],a:0},
+      {t:"FTPS es",o:["FTP sobre TLS/SSL","FTP sobre SSH","FTP sobre UDP","FTP sin puertos"],a:0},
 
-        function updateStatsScreen() {
-            [1, 2, 3, 4].forEach(block => {
-                const stats = state.stats.blockStats[block];
-                const percentage = stats.length > 0 ? Math.round((stats.filter(s => s === 1).length / stats.length) * 100) : 0;
-                document.getElementById('block' + block + 'Stats').textContent = percentage + '%';
-            });
-        }
+      // Correo (básico)
+      {t:"IMAP se usa para",o:["Acceder a correo manteniendo mensajes en servidor","Enviar correo","Resolver DNS","Asignar IP"],a:0},
+      {t:"POP3 se usa para",o:["Recibir correo descargándolo al cliente","Enviar correo","Cifrar VoIP","Gestionar VLANs"],a:0},
+      {t:"SMTP se usa para",o:["Enviar correo","Recibir correo","Sincronizar hora","Transferir archivos"],a:0},
+      {t:"SPF/DKIM/DMARC ayudan a",o:["Reducir suplantación y mejorar autenticidad de correo","Aumentar MTU","Crear VLANs","Hacer RAID"],a:0},
 
-        document.querySelectorAll('.block-card').forEach(card => {
-            card.addEventListener('click', () => { state.selectedBlock = parseInt(card.dataset.block); selectBlock(card.dataset.block); });
+      // Servicios comunes
+      {t:"Apache es comúnmente",o:["Servidor web","Servidor DNS","Servidor DHCP","Sistema de archivos"],a:0},
+      {t:"Nginx es comúnmente",o:["Servidor web/proxy inverso","Servidor DHCP","Servidor de impresión","Motor de BD"],a:0},
+      {t:"BIND es comúnmente",o:["Servidor DNS","Servidor web","Servidor de correo","Sistema de logs"],a:0},
+      {t:"Postfix es comúnmente",o:["Servidor de correo (MTA)","Servidor DNS","Firewall web","Sistema de archivos"],a:0},
+
+      // Último empujón para asegurar 240
+      {t:"Una política de retención de logs define",o:["Cuánto tiempo se guardan los registros","Qué IP es el gateway","Qué VLAN es trunk","Qué RAID usar"],a:0},
+      {t:"Un control de integridad de archivos (FIM) sirve para",o:["Detectar cambios no autorizados en ficheros","Asignar IPs","Balancear carga","Hacer NAT"],a:0},
+      {t:"Un escaneo de vulnerabilidades busca",o:["Identificar debilidades conocidas","Cambiar contraseñas automáticamente","Crear VLANs","Aumentar RAM"],a:0},
+      {t:"Un pentest se diferencia porque",o:["Intenta explotar vulnerabilidades con alcance definido","Solo actualiza parches","Solo revisa logs","Solo cambia DNS"],a:0},
+      {t:"Principio de 'need to know' implica",o:["Acceso solo a información necesaria","Acceso total para todos","Eliminar cifrado","Desactivar auditoría"],a:0},
+      {t:"Un puerto 0 en TCP/UDP se considera",o:["Reservado/no usado para comunicaciones normales","Puerto HTTPS","Puerto DNS","Puerto NTP"],a:0},
+      {t:"Un certificado expirado causa",o:["Errores de confianza en TLS/HTTPS","Mejor cifrado","Más ancho de banda","Menos latencia"],a:0},
+      {t:"Un certificado autofirmado",o:["No es confiado por CA pública por defecto","Siempre es inválido criptográficamente","Es obligatorio en HTTPS","No puede usarse nunca"],a:0},
+      {t:"Un 'principio de mínimo cambio' en incidentes sugiere",o:["Cambiar lo justo y documentar para no empeorar","Cambiar todo rápido sin registrar","Desactivar logs","Borrar evidencias"],a:0},
+      {t:"Una cadena de custodia en incidentes implica",o:["Registro de quién manipula evidencias y cuándo","Cifrar la VLAN","Cambiar MTU","Eliminar backups"],a:0},
+      {t:"Un hash SHA-256 se usa para",o:["Verificar integridad","Cifrar simétricamente","Asignar IP","Crear VLAN"],a:0},
+      {t:"Salting en contraseñas ayuda a",o:["Dificultar ataques con tablas arcoíris","Acelerar DNS","Hacer NAT","Crear RAID"],a:0},
+      {t:"Rate limiting ayuda contra",o:["Fuerza bruta y abuso de servicios","Fallos de disco","Cortes de luz","Errores de SQL"],a:0},
+      {t:"Un backup 'offline/air-gapped' ayuda contra",o:["Ransomware que cifra recursos accesibles","Latencia Wi-Fi","Errores de DNS","Fallo de switch"],a:0}
+    ];
+
+    // -------------- Config/Estado --------------
+    const TEST_SIZE = 100;
+    let questions = [];
+    let idx = 0;
+    let answers = [];
+    let flagged = [];
+    let startedAt = Date.now();
+    let timerInterval = null;
+    let finished = false;
+    let currentSetId = "—";
+    let currentCases = [];
+
+    // UI refs
+    const setIdEl = document.getElementById("setId");
+    const totalQ = document.getElementById("totalQ");
+    const answeredCount = document.getElementById("answeredCount");
+    const timerEl = document.getElementById("timer");
+    const qTitle = document.getElementById("qTitle");
+    const qText = document.getElementById("qText");
+    const optsEl = document.getElementById("opts");
+    const gridEl = document.getElementById("grid");
+    const hintEl = document.getElementById("hint");
+    const resultCard = document.getElementById("resultCard");
+    const testCard = document.getElementById("testCard");
+    const casesWrap = document.getElementById("casesWrap");
+
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const finishBtn = document.getElementById("finishBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const flagBtn = document.getElementById("flagBtn");
+
+    function fmtTime(ms){
+      const s = Math.floor(ms/1000);
+      const mm = String(Math.floor(s/60)).padStart(2,"0");
+      const ss = String(s%60).padStart(2,"0");
+      return `${mm}:${ss}`;
+    }
+
+    function startTimer(){
+      if(timerInterval) clearInterval(timerInterval);
+      startedAt = Date.now();
+      timerInterval = setInterval(() => {
+        timerEl.textContent = fmtTime(Date.now() - startedAt);
+      }, 250);
+    }
+
+    function stopTimer(){
+      if(timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function cryptoRandInt(maxExclusive){
+      if (window.crypto && window.crypto.getRandomValues) {
+        const buf = new Uint32Array(1);
+        window.crypto.getRandomValues(buf);
+        return buf[0] % maxExclusive;
+      }
+      return Math.floor(Math.random() * maxExclusive);
+    }
+
+    function shuffleInPlace(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j = cryptoRandInt(i+1);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+    function makeSetId(){
+      const n = Math.floor(Date.now()/1000);
+      const r = cryptoRandInt(1e6);
+      return `${n}-${String(r).padStart(6,"0")}`;
+    }
+
+    function pickRandomUnique(arr, n){
+      if (arr.length < n) throw new Error("Banco insuficiente.");
+      const idxs = Array.from({length: arr.length}, (_,i)=>i);
+      shuffleInPlace(idxs);
+      return idxs.slice(0,n).map(i => clone(arr[i]));
+    }
+
+    function pickRandomQuestions(n){
+      if (QUESTIONS_BANK.length < n) {
+        throw new Error(`Banco de preguntas insuficiente (${QUESTIONS_BANK.length}) para ${n}.`);
+      }
+      return pickRandomUnique(QUESTIONS_BANK, n);
+    }
+
+    function shuffleOptionsAndFixAnswer(q){
+      const mapping = [0,1,2,3];
+      shuffleInPlace(mapping);
+      const newOpts = mapping.map(i => q.o[i]);
+      const newA = mapping.indexOf(q.a);
+      q.o = newOpts;
+      q.a = newA;
+      return q;
+    }
+
+    function escapeHtml(str){
+      return str
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function renderCases(){
+      casesWrap.innerHTML = "";
+      currentCases.forEach((c, i) => {
+        const box = document.createElement("div");
+        box.className = "card";
+        box.style.boxShadow = "none";
+        box.innerHTML = `
+          <div class="topline">
+            <div class="caseTitle">${escapeHtml(c.title)}</div>
+            <span class="badge">Caso ${i+1}</span>
+          </div>
+          <p class="caseBody">${escapeHtml(c.body).replaceAll("\n","<br>")}</p>
+        `;
+        casesWrap.appendChild(box);
+      });
+    }
+
+    function initNewAttempt(){
+      finished = false;
+      resultCard.style.display = "none";
+      testCard.style.display = "block";
+
+      currentSetId = makeSetId();
+      setIdEl.textContent = currentSetId;
+
+      currentCases = pickRandomUnique(CASES_BANK, 2);
+      renderCases();
+
+      questions = pickRandomQuestions(TEST_SIZE).map(shuffleOptionsAndFixAnswer);
+
+      idx = 0;
+      answers = new Array(questions.length).fill(null);
+      flagged = new Array(questions.length).fill(false);
+
+      totalQ.textContent = questions.length;
+      updateAnsweredCount();
+      buildGrid();
+      render();
+      startTimer();
+      updateHint();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateAnsweredCount(){
+      answeredCount.textContent = answers.filter(v => v !== null).length;
+    }
+
+    function buildGrid(){
+      gridEl.innerHTML = "";
+      for(let i=0;i<questions.length;i++){
+        const b = document.createElement("button");
+        b.className = "qbtn";
+        b.textContent = (i+1);
+        b.addEventListener("click", () => { idx = i; render(); });
+        gridEl.appendChild(b);
+      }
+      paintGrid();
+    }
+
+    function paintGrid(){
+      const btns = [...gridEl.querySelectorAll("button.qbtn")];
+      btns.forEach((b,i) => {
+        b.classList.toggle("current", i===idx);
+        b.classList.toggle("answered", answers[i] !== null);
+        b.classList.toggle("flagged", flagged[i] === true);
+      });
+    }
+
+    function render(){
+      const q = questions[idx];
+      qTitle.textContent = `Pregunta ${idx+1} / ${questions.length}`;
+      qText.textContent = q.t;
+
+      optsEl.innerHTML = "";
+      q.o.forEach((txt, oi) => {
+        const id = `q${idx}_o${oi}`;
+        const label = document.createElement("label");
+        label.className = "opt";
+        label.setAttribute("for", id);
+
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "opt";
+        radio.id = id;
+        radio.checked = answers[idx] === oi;
+        radio.addEventListener("change", () => {
+          answers[idx] = oi;
+          updateAnsweredCount();
+          paintGrid();
+          updateHint();
         });
 
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => selectMode(btn.dataset.mode));
-        });
+        const span = document.createElement("span");
+        const letter = String.fromCharCode(97 + oi);
+        span.textContent = `${letter}) ${txt}`;
 
-        document.getElementById('startTest').addEventListener('click', generateTest);
-        document.getElementById('nextQuestion').addEventListener('click', nextQuestion);
-        
-        document.getElementById('retryBtn').addEventListener('click', () => {
-            state.currentIndex = 0;
-            state.answers = [];
-            state.timeElapsed = 0;
-            generateTest();
-        });
-        
-        document.getElementById('homeBtn').addEventListener('click', () => {
-            document.getElementById('progressFill').style.width = '0%';
-            showScreen('home');
-        });
+        label.appendChild(radio);
+        label.appendChild(span);
+        optsEl.appendChild(label);
+      });
 
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => showScreen(item.dataset.screen));
-        });
+      flagBtn.textContent = flagged[idx] ? "Dudosa ✓" : "Dudosa";
+      paintGrid();
 
-        document.getElementById('timerToggle').addEventListener('click', function() {
-            this.classList.toggle('active');
-            state.timerEnabled = this.classList.contains('active');
-        });
+      prevBtn.disabled = idx === 0;
+      nextBtn.disabled = idx === questions.length - 1;
+      updateHint();
+    }
 
-        document.getElementById('soundToggle').addEventListener('click', function() {
-            this.classList.toggle('active');
-            state.soundEnabled = this.classList.contains('active');
-        });
+    function updateHint(){
+      const unanswered = answers.filter(v => v === null).length;
+      const f = flagged.filter(Boolean).length;
+      hintEl.textContent = `Sin responder: ${unanswered} · Dudosas: ${f} · Estás en la ${idx+1}.`;
+    }
 
-        loadStats();
-    </script>
+    function toggleFlag(){
+      flagged[idx] = !flagged[idx];
+      flagBtn.textContent = flagged[idx] ? "Dudosa ✓" : "Dudosa";
+      paintGrid();
+      updateHint();
+    }
+
+    function finish(){
+      if(finished) return;
+      finished = true;
+      stopTimer();
+
+      const timeTaken = timerEl.textContent;
+      let ok = 0;
+
+      const details = questions.map((q, i) => {
+        const user = answers[i];
+        const correct = q.a;
+        const isOk = user === correct;
+        if(isOk) ok++;
+        return { i:i+1, t:q.t, o:q.o, user, correct, isOk, flagged: flagged[i] };
+      });
+
+      const total = questions.length;
+      const wrong = total - ok;
+      const scorePct = Math.round((ok/total)*100);
+      const unresolved = answers.filter(v => v === null).length;
+
+      testCard.style.display = "none";
+      resultCard.style.display = "block";
+
+      const head = document.createElement("div");
+      head.innerHTML = `
+        <h2>Resultado</h2>
+        <p><span class="k">Aciertos:</span> <span class="good">${ok}</span> ·
+           <span class="k">Fallos:</span> <span class="bad">${wrong}</span> ·
+           <span class="k">En blanco:</span> ${unresolved} ·
+           <span class="k">Nota:</span> ${scorePct}%</p>
+        <p><span class="k">Tiempo:</span> ${timeTaken} · <span class="k">Set:</span> ${currentSetId}</p>
+        <div class="hr"></div>
+        <div class="nav">
+          <button id="reviewBtn">Ver revisión (fallos/blancos)</button>
+          <button id="newBtn" class="primary">Nuevo intento (cambia todo)</button>
+        </div>
+      `;
+
+      resultCard.innerHTML = "";
+      resultCard.appendChild(head);
+
+      const reviewWrap = document.createElement("div");
+      reviewWrap.className = "review";
+      reviewWrap.style.display = "none";
+
+      const wrongOnes = details.filter(d => !d.isOk);
+      wrongOnes.forEach(d => {
+        const item = document.createElement("div");
+        item.className = "item";
+        const u = (d.user === null) ? "—" : String.fromCharCode(97 + d.user);
+        const c = String.fromCharCode(97 + d.correct);
+        const corrText = d.o[d.correct];
+        const userText = (d.user === null) ? "" : d.o[d.user];
+
+        item.innerHTML = `
+          <div class="topline">
+            <div class="k">P${d.i} ${d.flagged ? "· (Dudosa)" : ""}</div>
+            <div class="bad">Tu: ${u} ${userText ? "· " + escapeHtml(userText) : ""} · Correcta: ${c} · ${escapeHtml(corrText)}</div>
+          </div>
+          <div class="muted" style="margin-top:6px;">${escapeHtml(d.t)}</div>
+        `;
+        reviewWrap.appendChild(item);
+      });
+
+      if(wrongOnes.length === 0){
+        const item = document.createElement("div");
+        item.className = "item";
+        item.innerHTML = `<div class="k good">Pleno: 100/100.</div>`;
+        reviewWrap.appendChild(item);
+      }
+
+      resultCard.appendChild(reviewWrap);
+
+      document.getElementById("reviewBtn").addEventListener("click", () => {
+        reviewWrap.style.display = (reviewWrap.style.display === "none") ? "grid" : "none";
+      });
+      document.getElementById("newBtn").addEventListener("click", () => initNewAttempt());
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Eventos
+    prevBtn.addEventListener("click", () => { if(idx>0){ idx--; render(); } });
+    nextBtn.addEventListener("click", () => { if(idx<questions.length-1){ idx++; render(); } });
+    finishBtn.addEventListener("click", () => finish());
+    resetBtn.addEventListener("click", () => initNewAttempt());
+    flagBtn.addEventListener("click", () => toggleFlag());
+
+    // Arranque
+    initNewAttempt();
+  </script>
 </body>
 </html>
